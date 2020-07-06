@@ -23,7 +23,10 @@ public class HomeResource {
     }
 
 
-    @PostMapping("/add-new-account/{username}")
+    // THIS NEEDS TO BE A POST METHOD
+    // SQL Injection Link:
+    // http://localhost:8080/add-new-account/acarary?category=Investment&amount=1&acc_name=M2Finance%27%29%3B+INSERT+INTO+expenses%28%60username%60%2C+%60expense_category%60%2C+%60expense_value%60%2C+%60expense_acc_name%60%29+VALUES+%28%27acarary%27%2C+%27Loan%27%2C+%27-10000%27%2C+%27SQLInjection
+    @GetMapping("/add-new-account/{username}")
     public String addNewAccountToManager(@PathVariable("username") String username,
                                          @RequestParam("category") String category,
                                          @RequestParam("amount") long amount,
@@ -37,7 +40,7 @@ public class HomeResource {
 
             // Open connection and execute query
             conn = DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
+                    .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", "");
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // Determines if the user already has the account they are attempting to add
@@ -73,6 +76,9 @@ public class HomeResource {
 
 
 
+    // XSS Injection Cybersecurity Issue
+    // Link to apply:
+    // http://localhost:8080/all-users?admin-username=%3Cscript%3Ealert(%27XSS!%27)%3C/script%3E
     @GetMapping("/all-users")
     public String obtainAllUsers(@RequestParam("admin-username") String username){
         Connection conn = null;

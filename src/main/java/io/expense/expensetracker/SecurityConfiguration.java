@@ -30,6 +30,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/test").permitAll()
                 .antMatchers("/").permitAll()
                 .and().formLogin();
+
+        // CSRF DISABLED SECURITY ISSUE
         http.csrf().disable();
     }
 
