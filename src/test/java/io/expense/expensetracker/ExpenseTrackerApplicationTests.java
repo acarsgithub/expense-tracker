@@ -44,4 +44,26 @@ class ExpenseTrackerApplicationTests {
 				.andReturn().getResponse().getContentAsString();
 	}
 
+	@Test
+	public void testXSS2() throws Exception {
+		String result = mockMvc.
+				perform(get("/transaction-history/acarary?xss=<script>alert('XSS!')</script>").accept(MediaType.TEXT_HTML_VALUE))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("text/html;charset=UTF-8"))
+				.andReturn().getResponse().getContentAsString();
+	}
+
+	/*
+	// STILL NEED TO COMPLETE THIS TEST
+	@Test
+	public void testSQLInjection() throws Exception {
+		String result = mockMvc.
+				perform(get("/add-new-account/acarary").accept(MediaType.TEXT_HTML_VALUE))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("text/html;charset=UTF-8"))
+				.andReturn().getResponse().getContentAsString();
+	}
+	 */
+
+
 }

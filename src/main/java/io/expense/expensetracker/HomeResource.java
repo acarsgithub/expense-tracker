@@ -121,11 +121,14 @@ public class HomeResource {
     }
 
 
+
+    // XSS JS Injection
+    // Link: http://localhost:8080/transaction-history/acarary?xss=%3Cscript%3Ealert(%27XSS%27)%3C/script%3E
     @GetMapping("/transaction-history/{username}")
-    public String getTransactionHistory(@PathVariable("username") String username){
+    public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("xss") String user){
         Connection conn = null;
         Statement stmt = null;
-        String data = "";
+        String transactionData = "";
 
         try {
             // Register JDBC driver
@@ -135,12 +138,15 @@ public class HomeResource {
             conn = DriverManager
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            String properId = "SELECT * FROM  transactions WHERE username = '" + username + "'";
 
-            if(stmt.execute(properId)) {
-                ResultSet idCheck = stmt.executeQuery(properId);
+            // SQL Query to obtain user's information from transaction database
+            String transactionInfo = "SELECT * FROM  transactions WHERE username = '" + username + "'";
+
+            if(stmt.execute(transactionInfo)) {
+                // Obtaining user data from transaction database
+                ResultSet idCheck = stmt.executeQuery(transactionInfo);
                 while (idCheck.next()) {
-                    data += "<h2><center>Account Name: " + idCheck.getString("trans_acc_name") + "</center><br>"
+                    transactionData += "<h2><center>Account Name: " + idCheck.getString("trans_acc_name") + "</center><br>"
                             + "<center>Transaction Type: " + idCheck.getString("trans_type") + "</center><br>"
                             + "<center>Transaction Date: " + idCheck.getString("trans_date") + "</center><br>"
                             + "<center>Transaction Amount: " + idCheck.getLong("trans_amount") + "</center></h2><br><br>";
@@ -162,8 +168,12 @@ public class HomeResource {
         }
         //model.addAttribute("networth", total);
         //model.addAttribute("username", username);
-        return data;
+
+        // XSS Injection occurs here
+        return user  + "<br>" + transactionData;
     }
+
+
 
 
     @GetMapping("/total-net-worth/{username}")
@@ -298,23 +308,23 @@ public class HomeResource {
 
 
 
-
+    // This method organizes database information into a nice HTML format
     public String viewTable(ResultSet rs, String title) throws SQLException {
         StringBuilder result = new StringBuilder();
-
 
         result.append("<table border=\"1\" \nalign=\"center\"> \n<caption>").append(title).append("</caption>");
         ResultSetMetaData rsmd = rs.getMetaData();
 
         int columnsNumber = rsmd.getColumnCount();
 
+        // Getting column names from database as headers of table
         result.append("<tr>");
         for (int i = 1; i <= columnsNumber; i++) {
             result.append("<th>").append(rsmd.getColumnName(i)).append("</th>");
         }
         result.append("</tr>");
 
-
+        // Obtaining database information stored in columns
         while (rs.next()) {
             result.append("<tr>");
             for (int i = 1; i <= columnsNumber; i++) {
