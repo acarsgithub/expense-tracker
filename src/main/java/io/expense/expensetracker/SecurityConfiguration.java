@@ -24,14 +24,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
+
+        // Authorization restrictions
         http.authorizeRequests()
+                .antMatchers("/all-users").hasRole("ADMIN")
+                .antMatchers("transaction-history/{username}").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/modify-account/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/total-net-worth/{username}").hasAnyRole("USER", "ADMIN")
-                .antMatchers("/add-new-account/{username}").permitAll()
-                .antMatchers("/test").permitAll()
+                .antMatchers("/add-new-account/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/").permitAll()
                 .and().formLogin();
 
-        // CSRF DISABLED SECURITY ISSUE
+        // CSRF DISABLED SECURITY ISSUE!!!
         http.csrf().disable();
     }
 

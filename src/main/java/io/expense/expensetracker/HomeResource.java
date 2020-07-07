@@ -18,6 +18,7 @@ public class HomeResource {
         Method: home
         Purpose: This method will implement the index.html file and describe how to use the application
         Parameters: None
+        Returns: index.html thymeleaf file
      */
     @GetMapping("/")
     public String home(){
@@ -119,7 +120,7 @@ public class HomeResource {
     // Link: http://localhost:8080/transaction-history/acarary?xss=%3Cscript%3Ealert(%27XSS%27)%3C/script%3E
     @GetMapping("/transaction-history/{username}")
     @ResponseBody
-    public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("xss") String user){
+    public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("user") String user){
 
         Connection conn = null;
         Statement stmt = null;
