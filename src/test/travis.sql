@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS expensetracker;
 CREATE DATABASE IF NOT EXISTS expensetracker;
 USE expensetracker;
 

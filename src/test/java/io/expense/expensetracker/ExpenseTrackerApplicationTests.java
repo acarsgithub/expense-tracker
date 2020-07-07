@@ -127,5 +127,28 @@ class ExpenseTrackerApplicationTests {
 	}
 
 
+	@Test
+	public void testCreateNewUser() throws Exception {
+
+		// Tests that we can successfully create a new user without needing any logged in access
+		String result = mockMvc.perform(get("/create-new-user?username=testuser&password=testuserpass"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("text/plain;charset=UTF-8"))
+				.andReturn().getResponse().getContentAsString();
+		System.out.println(result);
+		Assert.isTrue(result.equals("<h2><center>Created new manager successfully!</center></h2>"));
+	}
+
+	@Test
+	public void testCreateNewDuplicateUser() throws Exception {
+
+		// Tests that we can prevent a user from creating an account with the same username that already exists
+		String result = mockMvc.perform(get("/create-new-user?username=acarary&password=acararypass"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("text/plain;charset=UTF-8"))
+				.andReturn().getResponse().getContentAsString();
+		Assert.isTrue(result.equals("<h2><center>The manager you are attempting to create already exists!</center></h2>"));
+	}
+
 
 }

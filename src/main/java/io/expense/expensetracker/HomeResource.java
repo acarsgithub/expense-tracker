@@ -5,6 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
+import javax.websocket.server.ServerEndpoint;
 import java.security.Principal;
 import java.sql.*;
 import java.text.DateFormat;
@@ -22,7 +23,52 @@ public class HomeResource {
      */
     @GetMapping("/")
     public String home(){
+
+        // Access index.html thymeleaf file
         return("index");
+    }
+
+    // THIS NEEDS TO BE A POST METHOD
+    @GetMapping("/create-new-user")
+    @ResponseBody
+    public String createNewUser(@RequestParam("username") String username,
+                                @RequestParam("password") String password){
+        Connection conn = null;
+        Statement stmt = null;
+
+        try {
+            // Open connection and execute query
+            conn = DriverManager
+                    .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", "");
+            stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+            // Determines if the user already has the account they are attempting to add
+            String checkCurrUserNames = "SELECT username FROM manager";
+            ResultSet setOfCurrUserNames = stmt.executeQuery(checkCurrUserNames);
+            while(setOfCurrUserNames.next()){
+                if(setOfCurrUserNames.getString("username").equals(username)){
+                    return("<h2><center>The manager you are attempting to create already exists!</center></h2>");
+                }
+            }
+
+            // If it is a new account, add to database
+            String properId = "INSERT INTO manager(`username`, `active`, `password`, `roles`) " +
+                    " VALUES ('" + username + "', TRUE, '" + password + "', 'ROLE_USER')";
+            System.out.println(properId);
+            stmt.executeUpdate(properId);
+
+        } catch (Exception se) { se.printStackTrace(); }
+        // Close Resources
+        try {
+            if (conn != null && stmt != null)
+                conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        }
+
+        // Account added successfully
+        return "<h2><center>Created new manager successfully!</center></h2>";
+
     }
 
 
@@ -122,6 +168,7 @@ public class HomeResource {
     @ResponseBody
     public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("user") String user){
 
+        // Needed variables for connection and SQL statements
         Connection conn = null;
         Statement stmt = null;
         String transactionData = "";
@@ -137,14 +184,11 @@ public class HomeResource {
 
             if(stmt.execute(transactionInfo)) {
                 // Obtaining user data from transaction database
-                ResultSet idCheck = stmt.executeQuery(transactionInfo);
-                while (idCheck.next()) {
-                    transactionData += "<h2><center>Account Name: " + idCheck.getString("trans_acc_name") + "</center><br>"
-                            + "<center>Transaction Type: " + idCheck.getString("trans_type") + "</center><br>"
-                            + "<center>Transaction Date: " + idCheck.getString("trans_date") + "</center><br>"
-                            + "<center>Transaction Amount: " + idCheck.getLong("trans_amount") + "</center></h2><br><br>";
-                }
-                idCheck.close();
+                ResultSet transactionSQL = stmt.executeQuery(transactionInfo);
+
+                // Accessing helper method to create table
+                transactionData = viewTable(transactionSQL, "Full Transaction History");
+                transactionSQL.close();
             }
 
         } catch (Exception se) { se.printStackTrace(); }
@@ -162,6 +206,7 @@ public class HomeResource {
     }
 
 
+
     /*
         Method: getTotalNetWorth
         Purpose: This method will allow a user to see their total net worth, based on all accounts in their manager
@@ -173,6 +218,8 @@ public class HomeResource {
                                        Principal principal, Model model*/){
 
         /*if (principal.getName().equals(username)) {*/
+
+            // Needed variables for connection and SQL statement/data
             Connection conn = null;
             Statement stmt = null;
             long total = 0;
@@ -194,9 +241,10 @@ public class HomeResource {
                         idCheck.close();
                     }
                 } catch (Exception se){
+
+                    // Couldn't find username in the database
                     return "<h2><center>Error occurred! Could not fetch data for " + username + "</center></h2>";
                 }
-
 
             } catch (Exception se) { se.printStackTrace(); }
 
@@ -210,13 +258,12 @@ public class HomeResource {
 
             //model.addAttribute("networth", total);
             //model.addAttribute("username", username);
-            return "<h2><center>User: " + username + "   ----   Networth: " + total + "</center></h2>";
+            return "<h3><center>User: " + username + "   ----   Networth: " + total + "</center></h3>";
             /*
         } else {
             return ("no");
         }
         */
-
     }
 
 
@@ -235,6 +282,7 @@ public class HomeResource {
                             @RequestParam(value= "trans_type", required=false) String trans_type,
                             @RequestParam(value= "trans_amount", required=false) Long trans_amount){
 
+        // Needed variables
         Connection conn = null;
         Statement stmt = null;
         ResultSet idCheck = null;
@@ -296,6 +344,7 @@ public class HomeResource {
                 conn.close();
         } catch (SQLException se) { se.printStackTrace(); }
 
+        // Should never access here anyways
         return "";
     }
 
@@ -307,8 +356,9 @@ public class HomeResource {
         Parameter: title of the table that will store the user information
      */
     public String viewTable(ResultSet rs, String title) throws SQLException {
-        StringBuilder result = new StringBuilder();
 
+        // Set up for creating table
+        StringBuilder result = new StringBuilder();
         result.append("<table border=\"1\" \nalign=\"center\"> \n<caption>").append(title).append("</caption>");
         ResultSetMetaData rsmd = rs.getMetaData();
         int columnsNumber = rsmd.getColumnCount();
@@ -328,8 +378,9 @@ public class HomeResource {
             }
             result.append("</tr>");
         }
-
         result.append("</table>");
+
+        // Return filled table
         return result.toString();
     }
 

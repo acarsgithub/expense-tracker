@@ -32,6 +32,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/modify-account/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/total-net-worth/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/add-new-account/{username}").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/create-new-user").permitAll()
                 .antMatchers("/").permitAll()
                 .and().formLogin();
 
