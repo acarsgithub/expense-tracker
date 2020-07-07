@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Testing Thymeleaf</title>
+</head>
+<body>
+
+    <style type="text/css">
+        .wrapper {
+            text-align: center;
+        }
+        .wrapper ul {
+            display: inline-block;
+            margin: 0;
+            padding: 0;
+            /* For IE, the outcast */
+            zoom:1;
+            *display: inline;
+        }
+        .wrapper li {
+            float: left;
+            padding: 2px 5px;
+            border: 1px solid black;
+        }
+    </style>
+
+
+    <h1><center>Welcome! Read the following directions to understand
+        how to use the expense tracker application!</center></h1><br><br>
+
+    <div class="wrapper">
+        <ul>
+            <h2><center>
+                <li><b>/login</b>  ----  will allow you to enter your username and password to login</li><br><br><br>
+                <li><b>/add-new-account/{username}</b>   ----  will allow you to add a new account to your expense manager</li><br><br><br>
+                <li><b>/all-users</b>  ----  will allow the admin to see all users in the database and their net worth</li><br><br><br>
+                <li><b>/transaction-history/{username}</b>  ----  will show all transactions for a particular user</li><br><br><br>
+                <li><b>/total-net-worth/{username}</b>   ----   will display a user's total net worth</li><br><br><br>
+                <li><b>/modify-account/{username}</b> ----  will allow the user to deposit or withdraw money from a specific account</li><br><br><br>
+             </center></h2>
+        </ul>
+    </div>
+</body>
+</html>

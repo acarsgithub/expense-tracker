@@ -11,15 +11,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-@RestController
+@Controller
 public class HomeResource {
 
-    private String username;
-
+    /*
+        Method: home
+        Purpose: This method will implement the index.html file and describe how to use the application
+        Parameters: None
+     */
     @GetMapping("/")
     public String home(){
-        return("<h2><center>Welcome! Please log in to update or see your current expenses. " +
-                "If you're already logged in, then congratulations!</center></h2>");
+        return("index");
     }
 
 
@@ -27,6 +29,7 @@ public class HomeResource {
     // SQL Injection Link:
     // http://localhost:8080/add-new-account/acarary?category=Investment&amount=1&acc_name=M2Finance%27%29%3B+INSERT+INTO+expenses%28%60username%60%2C+%60expense_category%60%2C+%60expense_value%60%2C+%60expense_acc_name%60%29+VALUES+%28%27acarary%27%2C+%27Loan%27%2C+%27-10000%27%2C+%27SQLInjection
     @GetMapping("/add-new-account/{username}")
+    @ResponseBody
     public String addNewAccountToManager(@PathVariable("username") String username,
                                          @RequestParam("category") String category,
                                          @RequestParam("amount") long amount,
@@ -35,9 +38,6 @@ public class HomeResource {
         Statement stmt = null;
 
         try {
-            // Register JDBC driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
             // Open connection and execute query
             conn = DriverManager
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", "");
@@ -57,20 +57,16 @@ public class HomeResource {
                         " VALUES ('" + username + "', '" + category + "', '" + amount + "', '" + acc_name + "')";
             stmt.executeUpdate(properId);
 
-
-            // Handle JDBC errors
-        } catch (Exception se) {
-            se.printStackTrace();
-        }
-        //close resources
+        } catch (Exception se) { se.printStackTrace(); }
+        // Close Resources
         try {
             if (conn != null && stmt != null)
                 conn.close();
         } catch (SQLException se) {
             se.printStackTrace();
         }
-        //model.addAttribute("networth", total);
-        //model.addAttribute("username", username);
+
+        // Account added successfully
         return "<h2><center>Added account to manager successfully!</center></h2>";
     }
 
@@ -80,21 +76,21 @@ public class HomeResource {
     // Link to apply:
     // http://localhost:8080/all-users?admin-username=%3Cscript%3Ealert(%27XSS!%27)%3C/script%3E
     @GetMapping("/all-users")
+    @ResponseBody
     public String obtainAllUsers(@RequestParam("admin-username") String username){
+
         Connection conn = null;
         Statement stmt = null;
         String data = "";
 
         try {
-            // Register JDBC driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
             // Open connection and execute query
             conn = DriverManager
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             String properId = "SELECT username FROM  manager";
 
+            // Obtain total net worth of all users in the database
             if(stmt.execute(properId)) {
                 ResultSet idCheck = stmt.executeQuery(properId);
                 while (idCheck.next()) {
@@ -103,20 +99,17 @@ public class HomeResource {
                 idCheck.close();
             }
 
-            // Handle JDBC errors
-        } catch (Exception se) {
-            se.printStackTrace();
-        }
-        //close resources
+        } catch (Exception se) { se.printStackTrace(); }
+
+        // Close Resources
         try {
             if (conn != null && stmt != null)
                 conn.close();
         } catch (SQLException se) {
             se.printStackTrace();
         }
-        //model.addAttribute("networth", total);
-        //model.addAttribute("username", username)
-        System.out.println("Here");
+
+        // XSS Injection occurs here with the username
         return "<h2><center>Welcome " + username + ". Here's all users' information. </center></h2><br>" + data;
     }
 
@@ -125,15 +118,14 @@ public class HomeResource {
     // XSS JS Injection
     // Link: http://localhost:8080/transaction-history/acarary?xss=%3Cscript%3Ealert(%27XSS%27)%3C/script%3E
     @GetMapping("/transaction-history/{username}")
+    @ResponseBody
     public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("xss") String user){
+
         Connection conn = null;
         Statement stmt = null;
         String transactionData = "";
 
         try {
-            // Register JDBC driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
             // Open connection and execute query
             conn = DriverManager
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
@@ -154,22 +146,17 @@ public class HomeResource {
                 idCheck.close();
             }
 
+        } catch (Exception se) { se.printStackTrace(); }
 
-            // Handle JDBC errors
-        } catch (Exception se) {
-            se.printStackTrace();
-        }
-        //close resources
+        // Close resources
         try {
             if (conn != null && stmt != null)
                 conn.close();
         } catch (SQLException se) {
             se.printStackTrace();
         }
-        //model.addAttribute("networth", total);
-        //model.addAttribute("username", username);
 
-        // XSS Injection occurs here
+        // XSS Injection occurs here with user variable
         return user  + "<br>" + transactionData;
     }
 
@@ -177,6 +164,7 @@ public class HomeResource {
 
 
     @GetMapping("/total-net-worth/{username}")
+    @ResponseBody
     public String getTotalNetWorth(@PathVariable("username") String username/*,
                                        Principal principal, Model model*/){
 
@@ -186,9 +174,6 @@ public class HomeResource {
             long total = 0;
 
             try {
-                // Register JDBC driver
-                Class.forName("com.mysql.cj.jdbc.Driver");
-
                 // Open connection and execute query
                 conn = DriverManager
                         .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
@@ -196,7 +181,7 @@ public class HomeResource {
                 String properId = "SELECT expense_value, expense_category FROM expenses WHERE username = '" + username + "'";
 
                 try {
-
+                    // Obtain the total net worth from the database
                     if (stmt.execute(properId)) {
                         ResultSet idCheck = stmt.executeQuery(properId);
                         while (idCheck.next()) {
@@ -209,17 +194,16 @@ public class HomeResource {
                 }
 
 
-                // Handle JDBC errors
-            } catch (Exception se) {
-                se.printStackTrace();
-            }
-            //close resources
+            } catch (Exception se) { se.printStackTrace(); }
+
+            // Close Resources
             try {
                 if (conn != null && stmt != null)
                     conn.close();
             } catch (SQLException se) {
                 se.printStackTrace();
             }
+
             //model.addAttribute("networth", total);
             //model.addAttribute("username", username);
             return "<h2><center>User: " + username + "   ----   Networth: " + total + "</center></h2>";
@@ -231,7 +215,17 @@ public class HomeResource {
 
     }
 
+
+    /*
+        Method: modifyAccount
+        Purpose: This method will allow a user ot see all accounts within their manager, and will allow them to modify
+                an account by withdrawing or depositing money
+         Optional Request Parameters: the accountID associated with the account to modify
+         Optional Request Parameters: the transaction type (must be 'DEPOSIT' or 'WITHDRAWAL')
+         Optional Request Parameters: the transaction amount to deposit or withdraw
+     */
     @GetMapping("/modify-account/{username}")
+    @ResponseBody
     public String modifyAccount(@PathVariable("username") String username,
                             @RequestParam(defaultValue = "-1", value = "accountID", required = false) int accountID,
                             @RequestParam(value= "trans_type", required=false) String trans_type,
@@ -239,28 +233,30 @@ public class HomeResource {
 
         Connection conn = null;
         Statement stmt = null;
-        String data = "";
         ResultSet idCheck = null;
         String properId = "";
         long value = 0;
         String expense_acc_name = "";
-        String update;
+        String update = "";
 
         try {
-            // Register JDBC driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Open connection and execute query
             conn = DriverManager
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
+            // Determine if the user entered the accountID and intends to modify an actual acccount
             if(accountID != -1) {
+
+                // Obtain expense value and account name from SQL database
                 ResultSet rs2 = stmt.executeQuery("SELECT * FROM expenses WHERE expense_id=" + accountID);
                 while(rs2.next()){
                     value = rs2.getLong("expense_value");
                     expense_acc_name = rs2.getString("expense_acc_name");
                 }
+
+                // Determine if the transaction was a deposit or withdrawal adn update in the database accordingly
                 if(trans_type.equals("DEPOSIT")) {
                     value = value + trans_amount;
                     update = "UPDATE expenses SET expense_value=" + value + " WHERE expense_id=" + accountID;
@@ -270,10 +266,12 @@ public class HomeResource {
                 }
                 stmt.executeUpdate(update);
 
+                // Obtain the current date and time of the transaction
                 DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                 Calendar cal = Calendar.getInstance();
                 System.out.println(dateFormat.format(cal.getTime()));
 
+                // Update into the transaction table
                 update = "INSERT INTO transactions(`expense_id`, `trans_date`, `trans_acc_name`, `trans_amount`, `trans_type`, `username`) " +
                         " VALUES ('" + accountID + "', '" + dateFormat.format(cal.getTime()) + "', '"
                         + expense_acc_name + "', '" + trans_amount + "', '" + trans_type + "', '" + username + "')";
@@ -281,40 +279,34 @@ public class HomeResource {
 
             }
 
+            // Print out new account values
             properId = "SELECT * FROM expenses WHERE username = '" + username + "'";
             idCheck = stmt.executeQuery(properId);
             return viewTable(idCheck, "<h2><b>All Personal Accounts</b><h2>");
-            /*
-            while (idCheck.next()) {
-                data += "<p><center>Account Name: " + idCheck.getString("expense_acc_name") + "</center><br>"
-                        + "<center>Account ID: " + idCheck.getString("expense_id") + "</center><br>"
-                        + "<center>Account Value: " + idCheck.getString("expense_value") + "</center><br>"
-                        + "<center>Account Type: " + idCheck.getString("expense_category") + "</center><br><br></p>";
-            }
 
-            idCheck.close();
-             */
-
-            // Handle JDBC errors
         } catch (Exception se) { se.printStackTrace(); }
-        //close resources
+
+        // Close Resources
         try {
             if (conn != null && stmt != null)
                 conn.close();
         } catch (SQLException se) { se.printStackTrace(); }
 
-        return(data);
+        return "";
     }
 
 
-
-    // This method organizes database information into a nice HTML format
+    /*
+        Method: viewTable
+        Purpose: This method will take in a result set and modify the data in a nice table format
+        Parameter: result set which holds the data
+        Parameter: title of the table that will store the user information
+     */
     public String viewTable(ResultSet rs, String title) throws SQLException {
         StringBuilder result = new StringBuilder();
 
         result.append("<table border=\"1\" \nalign=\"center\"> \n<caption>").append(title).append("</caption>");
         ResultSetMetaData rsmd = rs.getMetaData();
-
         int columnsNumber = rsmd.getColumnCount();
 
         // Getting column names from database as headers of table
