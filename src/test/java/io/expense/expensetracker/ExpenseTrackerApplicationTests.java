@@ -80,14 +80,27 @@ class ExpenseTrackerApplicationTests {
 	@Test
 	public void testForcesUserLogin() throws Exception {
 
-		// Tests that get request on all-users controller doesn't work properly without admin logged in
+		// Tests that get request on all-users controller doesn't work properly without anyone logged in
 		// Must redirect to login page
-		String result = mockMvc.perform(get("/all-users?admin-username=noadmin").accept(MediaType.TEXT_HTML_VALUE))
+		String result = mockMvc.perform(get("/all-users?admin-username=noadmin")
+				.accept(MediaType.TEXT_HTML_VALUE))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("http://localhost/login"))
 				.andReturn().getResponse().getContentAsString();
 	}
 
+
+	@Test
+	@WithMockUser(username="user",roles={"USER"})
+	public void testRedirectWhenNotAdmin() throws Exception {
+
+		// Tests that get request on all-users controller doesn't work properly when user is logged in
+		// Must redirect to login page
+		String result = mockMvc.perform(get("/all-users?admin-username=user")
+				.accept(MediaType.TEXT_HTML_VALUE))
+				.andExpect(status().is4xxClientError())
+				.andReturn().getResponse().getContentAsString();
+	}
 
 	@Test
 	@WithMockUser(username="admin",roles={"ADMIN"})

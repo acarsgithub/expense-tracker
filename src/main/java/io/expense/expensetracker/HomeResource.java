@@ -162,8 +162,11 @@ public class HomeResource {
     }
 
 
-
-
+    /*
+        Method: getTotalNetWorth
+        Purpose: This method will allow a user to see their total net worth, based on all accounts in their manager
+         Path Variable: username of account you want to check
+     */
     @GetMapping("/total-net-worth/{username}")
     @ResponseBody
     public String getTotalNetWorth(@PathVariable("username") String username/*,
