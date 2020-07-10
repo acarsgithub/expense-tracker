@@ -1,12 +1,8 @@
 package io.expense.expensetracker;
-
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
-
-import javax.websocket.server.ServerEndpoint;
-import java.security.Principal;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -14,6 +10,8 @@ import java.util.Calendar;
 
 @Controller
 public class HomeResource {
+
+    private String pass = "";
 
     /*
         Method: home
@@ -23,25 +21,39 @@ public class HomeResource {
      */
     @GetMapping("/")
     public String home(){
-
         // Access index.html thymeleaf file
         return("index");
     }
 
-    // THIS NEEDS TO BE A POST METHOD
-    @GetMapping("/create-new-user")
+
+    /*
+        Method: createNewUser
+        Purpose: This post method will allow an individual to create a new account/manager to track their finances
+        RequestBody JSON Object/String: json string object with two parameters ----
+                                        - username of manager being created
+                                        - password of manager being created
+        Returns: either a string indicating the user was created successfully, or that the user already exists
+
+     */
+    @PostMapping("/create-new-user")
     @ResponseBody
-    public String createNewUser(@RequestParam("username") String username,
-                                @RequestParam("password") String password){
+    public String createNewUser(@RequestBody String jsonStr) throws JSONException {
+
+        // parsing json object
+        JSONObject json = new JSONObject(jsonStr);
+        String username = json.getString("username");
+        String password = json.getString("password");
+
         Connection conn = null;
         Statement stmt = null;
 
         try {
             // Open connection and execute query
             conn = DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", "");
+                    .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
+            /*
             // Determines if the user already has the account they are attempting to add
             String checkCurrUserNames = "SELECT username FROM manager";
             ResultSet setOfCurrUserNames = stmt.executeQuery(checkCurrUserNames);
@@ -50,11 +62,11 @@ public class HomeResource {
                     return("<h2><center>The manager you are attempting to create already exists!</center></h2>");
                 }
             }
+             */
 
             // If it is a new account, add to database
             String properId = "INSERT INTO manager(`username`, `active`, `password`, `roles`) " +
                     " VALUES ('" + username + "', TRUE, '" + password + "', 'ROLE_USER')";
-            System.out.println(properId);
             stmt.executeUpdate(properId);
 
         } catch (Exception se) { se.printStackTrace(); }
@@ -72,22 +84,35 @@ public class HomeResource {
     }
 
 
-    // THIS NEEDS TO BE A POST METHOD
-    // SQL Injection Link:
-    // http://localhost:8080/add-new-account/acarary?category=Investment&amount=1&acc_name=M2Finance%27%29%3B+INSERT+INTO+expenses%28%60username%60%2C+%60expense_category%60%2C+%60expense_value%60%2C+%60expense_acc_name%60%29+VALUES+%28%27acarary%27%2C+%27Loan%27%2C+%27-10000%27%2C+%27SQLInjection
-    @GetMapping("/add-new-account/{username}")
+    /*
+        Method: addNewAccountToManager
+        Purpose: This method will add a new financial account to the specified username's manager and will allow the
+                individual to track the account in the future
+        Path Variable: the username of the person adding the account
+        RequestBody JSON Object/String: json string object with three parameters ----
+                                        - category (Investment, Loan, Credit, Checking, Saving)
+                                        - amount (positive or negative value)
+                                        - acc_name (name of the account)
+        Returns: either a string indicating the account was created successfully, or that the account already exists
+     */
+    @PostMapping("/add-new-account/{username}")
     @ResponseBody
-    public String addNewAccountToManager(@PathVariable("username") String username,
-                                         @RequestParam("category") String category,
-                                         @RequestParam("amount") long amount,
-                                         @RequestParam("acc_name") String acc_name){
+    public String addNewAccountToManager(@PathVariable("username") String username, @RequestBody String jsonStr)
+            throws JSONException {
+
+        // Parsing JSON Object
+        JSONObject json = new JSONObject(jsonStr);
+        String category = json.getString("category");
+        String amount = json.getString("amount");
+        String acc_name = json.getString("acc_name");
+
         Connection conn = null;
         Statement stmt = null;
 
         try {
             // Open connection and execute query
             conn = DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", "");
+                    .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // Determines if the user already has the account they are attempting to add
@@ -118,10 +143,15 @@ public class HomeResource {
     }
 
 
+    /*
+        Method: obtainAllUsers
+        Purpose: This method will allow the admin to see all users and all of their net-worth
+        Required Request Parameter: the admin username
+        Returns: user information and net worth
 
-    // XSS Injection Cybersecurity Issue
-    // Link to apply:
-    // http://localhost:8080/all-users?admin-username=%3Cscript%3Ealert(%27XSS!%27)%3C/script%3E
+        CYBERSECURITY: XSS Injection Cybersecurity Issue through username
+        http://localhost:8080/all-users?admin-username=%3Cscript%3Ealert(%27XSS!%27)%3C/script%3E
+     */
     @GetMapping("/all-users")
     @ResponseBody
     public String obtainAllUsers(@RequestParam("admin-username") String username){
@@ -133,7 +163,7 @@ public class HomeResource {
         try {
             // Open connection and execute query
             conn = DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
+                    .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
             String properId = "SELECT username FROM  manager";
 
@@ -162,8 +192,17 @@ public class HomeResource {
 
 
 
-    // XSS JS Injection
-    // Link: http://localhost:8080/transaction-history/acarary?xss=%3Cscript%3Ealert(%27XSS%27)%3C/script%3E
+    /*
+        Method: getTransactionHistory
+        Purpose: This method will show the user their transaction history for all accounts
+        Path Variable: username of the person's account to show the transaction history of
+        Required Request Parameter: the name of the user (for displaying purposes)
+        Returns: all transactions ensued by the user
+
+        CYBERSECURITY: XSS Injection Cybersecurity Issue through 'user' variable
+        Link: http://localhost:8080/transaction-history/acarary?xss=%3Cscript%3Ealert(%27XSS%27)%3C/script%3E
+     */
+
     @GetMapping("/transaction-history/{username}")
     @ResponseBody
     public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("user") String user){
@@ -176,7 +215,7 @@ public class HomeResource {
         try {
             // Open connection and execute query
             conn = DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
+                    .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // SQL Query to obtain user's information from transaction database
@@ -187,7 +226,7 @@ public class HomeResource {
                 ResultSet transactionSQL = stmt.executeQuery(transactionInfo);
 
                 // Accessing helper method to create table
-                transactionData = viewTable(transactionSQL, "Full Transaction History");
+                transactionData = viewTable(transactionSQL, "<h2><center>Full Transaction History</center></h2>");
                 transactionSQL.close();
             }
 
@@ -202,7 +241,7 @@ public class HomeResource {
         }
 
         // XSS Injection occurs here with user variable
-        return user  + "<br>" + transactionData;
+        return "<h2><center>" + user  + "<br>" + transactionData + "</center></h2>";
     }
 
 
@@ -210,14 +249,12 @@ public class HomeResource {
     /*
         Method: getTotalNetWorth
         Purpose: This method will allow a user to see their total net worth, based on all accounts in their manager
-         Path Variable: username of account you want to check
+        Path Variable: username of account you want to check
+        Returns: total net worth of individual
      */
     @GetMapping("/total-net-worth/{username}")
     @ResponseBody
-    public String getTotalNetWorth(@PathVariable("username") String username/*,
-                                       Principal principal, Model model*/){
-
-        /*if (principal.getName().equals(username)) {*/
+    public String getTotalNetWorth(@PathVariable("username") String username){
 
             // Needed variables for connection and SQL statement/data
             Connection conn = null;
@@ -227,7 +264,7 @@ public class HomeResource {
             try {
                 // Open connection and execute query
                 conn = DriverManager
-                        .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
+                        .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", pass);
                 stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
                 String properId = "SELECT expense_value, expense_category FROM expenses WHERE username = '" + username + "'";
 
@@ -256,24 +293,20 @@ public class HomeResource {
                 se.printStackTrace();
             }
 
-            //model.addAttribute("networth", total);
-            //model.addAttribute("username", username);
             return "<h3><center>User: " + username + "   ----   Networth: " + total + "</center></h3>";
-            /*
-        } else {
-            return ("no");
-        }
-        */
     }
 
 
     /*
         Method: modifyAccount
-        Purpose: This method will allow a user ot see all accounts within their manager, and will allow them to modify
+        Purpose: This method will allow a user to see all accounts within their manager, and will allow them to modify
                 an account by withdrawing or depositing money
          Optional Request Parameters: the accountID associated with the account to modify
          Optional Request Parameters: the transaction type (must be 'DEPOSIT' or 'WITHDRAWAL')
          Optional Request Parameters: the transaction amount to deposit or withdraw
+         Returns: all account information for the user as a string
+
+         Post method should be
      */
     @GetMapping("/modify-account/{username}")
     @ResponseBody
@@ -295,7 +328,7 @@ public class HomeResource {
 
             // Open connection and execute query
             conn = DriverManager
-                    .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", "");
+                    .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // Determine if the user entered the accountID and intends to modify an actual acccount
@@ -354,6 +387,7 @@ public class HomeResource {
         Purpose: This method will take in a result set and modify the data in a nice table format
         Parameter: result set which holds the data
         Parameter: title of the table that will store the user information
+        Returns: a nice format for the information in the SQL table
      */
     public String viewTable(ResultSet rs, String title) throws SQLException {
 

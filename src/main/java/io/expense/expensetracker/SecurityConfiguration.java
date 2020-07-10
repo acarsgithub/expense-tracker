@@ -1,6 +1,4 @@
 package io.expense.expensetracker;
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -27,7 +25,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         // Authorization restrictions
         http.authorizeRequests()
-                .antMatchers("/all-users").hasRole("ADMIN")
+                .antMatchers("/all-users").hasAnyRole("USER", "ADMIN")
                 .antMatchers("transaction-history/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/modify-account/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/total-net-worth/{username}").hasAnyRole("USER", "ADMIN")
