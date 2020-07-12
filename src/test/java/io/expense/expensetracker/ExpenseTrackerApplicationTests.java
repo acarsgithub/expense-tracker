@@ -39,6 +39,115 @@ class ExpenseTrackerApplicationTests {
 				.andReturn().getResponse().getContentAsString();
 	}
 
+	/*
+		This works perfectly fine and is how it should be...
+	 */
+	@Test
+	public void testForcesUserLogin() throws Exception {
+
+		// Tests that get request on all-users controller doesn't work properly without anyone logged in
+		// Must redirect to login page
+		String result = mockMvc.perform(get("/all-users?admin-username=noadmin")
+				.accept(MediaType.TEXT_HTML_VALUE))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("http://localhost/login"))
+				.andReturn().getResponse().getContentAsString();
+	}
+
+
+	/*
+    This test works perfectly fine, the admin should have access to the all-users page
+ 	*/
+	@Test
+	@WithMockUser(username="admin",roles={"ADMIN"})
+	public void testAdminCredentialsOnAdminController() throws Exception {
+
+		// Tests that we can successfully gain access to all-users controller when logged in as admin
+		String result = mockMvc.perform(get("/all-users?admin-username=admin"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType("text/plain;charset=UTF-8"))
+				.andReturn().getResponse().getContentAsString();
+	}
+
+
+	/*
+		This test works perfectly fine and is okay to do so...
+	 */
+
+	@Test
+	public void testCreateNewUser() throws Exception {
+
+		// Creating object to store body message key-value pairs
+		Object randomObj = new Object() {
+			public final String username = "testuser";
+			public final String password = "testuserpass";
+		};
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		String json = objectMapper.writeValueAsString(randomObj);
+
+		// Testing post request to create a new user
+		String result = mockMvc.perform(MockMvcRequestBuilders.post("/create-new-user")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(json)
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>Created new manager successfully!</center></h2>"));
+
+
+	}
+
+
+	/*
+		This tests whether you can create a duplicate user or not
+		You should not be able to create a duplicate user! However, it is allowing you to do so at this time
+		The solution to this has been commented out in the /create-new-user controller
+
+		EDIT: THIS TEST PASSES IN SUCCESS
+ 	*/
+	@Test
+	public void testCreateNewDuplicateUser() throws Exception {
+		// Creating object to store body message key-value pairs
+		Object randomObj = new Object() {
+			public final String username = "acarary";
+			public final String password = "acararypass";
+		};
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		String json = objectMapper.writeValueAsString(randomObj);
+
+		// Testing post request to create a user that already exists
+		String result = mockMvc.perform(MockMvcRequestBuilders.post("/create-new-user")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(json)
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>The manager you are attempting to create already exists!</center></h2>"));
+	}
+
+
+	/*
+    This is testing that only the admin can actually access the all-users controller, and should redirect the user
+    if they are not an admin (solution to this involves the security configuration changes to be made for this request)
+
+    EDIT: THIS TEST PASSES ON SUCCESS BRANCH
+ 	*/
+	@Test
+	@WithMockUser(username="acarary",roles={"USER"})
+	public void testAdminNeededForController() throws Exception {
+
+		// Tests that get request on all-users controller doesn't work properly without anyone logged in
+		// Must redirect to login page
+		String result = mockMvc.perform(get("/all-users?admin-username=acarary")
+				.accept(MediaType.TEXT_HTML_VALUE))
+				.andExpect(status().is4xxClientError())
+				.andReturn().getResponse().getContentAsString();
+	}
+
 
 	/*
 		The test fails, because the code in home resource for all-users controller needs to be setup to return an error
@@ -59,38 +168,6 @@ class ExpenseTrackerApplicationTests {
 				.andReturn().getResponse().getContentAsString();
 	}
 
-
-	/*
-		This works perfectly fine and is how it should be...
-	 */
-	@Test
-	public void testForcesUserLogin() throws Exception {
-
-		// Tests that get request on all-users controller doesn't work properly without anyone logged in
-		// Must redirect to login page
-		String result = mockMvc.perform(get("/all-users?admin-username=noadmin")
-				.accept(MediaType.TEXT_HTML_VALUE))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("http://localhost/login"))
-				.andReturn().getResponse().getContentAsString();
-	}
-
-	/*
-		This is testing that only the admin can actually access the all-users controller, and should redirect the user
-		if they are not an admin (solution to this involves the security configuration changes to be made for this request)
-	 */
-	@Test
-	@WithMockUser(username="acarary",roles={"USER"})
-	public void testAdminNeededForController() throws Exception {
-
-		// Tests that get request on all-users controller doesn't work properly without anyone logged in
-		// Must redirect to login page
-		String result = mockMvc.perform(get("/all-users?admin-username=acarary")
-				.accept(MediaType.TEXT_HTML_VALUE))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("http://localhost/login"))
-				.andReturn().getResponse().getContentAsString();
-	}
 
 	/*
 		This tests that if an XSS JS code injection occurs for the transaction history controller, that an error
@@ -173,19 +250,7 @@ class ExpenseTrackerApplicationTests {
 
 	}
 
-	/*
-		This test works perfectly fine, the admin should have access to the all-users page
-	 */
-	@Test
-	@WithMockUser(username="admin",roles={"ADMIN"})
-	public void testAdminCredentialsOnAdminController() throws Exception {
 
-		// Tests that we can successfully gain access to all-users controller when logged in as admin
-		String result = mockMvc.perform(get("/all-users?admin-username=admin"))
-				.andExpect(status().isOk())
-				.andExpect(content().contentType("text/plain;charset=UTF-8"))
-				.andReturn().getResponse().getContentAsString();
-	}
 
 
 	/*
@@ -224,61 +289,6 @@ class ExpenseTrackerApplicationTests {
 				.andReturn().getResponse().getContentAsString();
 	}
 
-	/*
-		This test works perfectly fine and is okay to do so...
-	 */
-
-	@Test
-	public void testCreateNewUser() throws Exception {
-
-		// Creating object to store body message key-value pairs
-		Object randomObj = new Object() {
-			public final String username = "testuser";
-			public final String password = "testuserpass";
-		};
-
-		ObjectMapper objectMapper = new ObjectMapper();
-		String json = objectMapper.writeValueAsString(randomObj);
-
-		// Testing post request to create a new user
-		String result = mockMvc.perform(MockMvcRequestBuilders.post("/create-new-user")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(json)
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
-				.andReturn().getResponse().getContentAsString();
-
-		Assert.isTrue(result.equals("<h2><center>Created new manager successfully!</center></h2>"));
-
-
-	}
-
-	/*
-		This tests whether you can create a duplicate user or not
-		You should not be able to create a duplicate user! However, it is allowing you to do so at this time
-		The solution to this has been commented out in the /create-new-user controller
-	 */
-	@Test
-	public void testCreateNewDuplicateUser() throws Exception {
-		// Creating object to store body message key-value pairs
-		Object randomObj = new Object() {
-			public final String username = "acarary";
-			public final String password = "acararypass";
-		};
-
-		ObjectMapper objectMapper = new ObjectMapper();
-		String json = objectMapper.writeValueAsString(randomObj);
-
-		// Testing post request to create a user that already exists
-		String result = mockMvc.perform(MockMvcRequestBuilders.post("/create-new-user")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(json)
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
-				.andReturn().getResponse().getContentAsString();
-
-		Assert.isTrue(result.equals("<h2><center>The manager you are attempting to create already exists!</center></h2>"));
-	}
 
 
 }

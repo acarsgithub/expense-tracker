@@ -25,7 +25,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         // Authorization restrictions
         http.authorizeRequests()
-                .antMatchers("/all-users").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/all-users").hasRole( "ADMIN")
                 .antMatchers("transaction-history/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/modify-account/{username}").hasAnyRole("USER", "ADMIN")
                 .antMatchers("/total-net-worth/{username}").hasAnyRole("USER", "ADMIN")

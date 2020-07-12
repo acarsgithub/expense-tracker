@@ -53,7 +53,7 @@ public class HomeResource {
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
-            /*
+
             // Determines if the user already has the account they are attempting to add
             String checkCurrUserNames = "SELECT username FROM manager";
             ResultSet setOfCurrUserNames = stmt.executeQuery(checkCurrUserNames);
@@ -62,7 +62,7 @@ public class HomeResource {
                     return("<h2><center>The manager you are attempting to create already exists!</center></h2>");
                 }
             }
-             */
+
 
             // If it is a new account, add to database
             String properId = "INSERT INTO manager(`username`, `active`, `password`, `roles`) " +
