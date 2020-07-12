@@ -211,6 +211,8 @@ class ExpenseTrackerApplicationTests {
 
 		Solution is to ensure and set up proper guidelines against what the values of user can be within the controller
 		source code
+
+		EDIT: THIS TEST NOW PASSES FOR SUCCESS
 	 */
 	@Test
 	@WithMockUser(username="user",roles={"USER"})
@@ -221,6 +223,52 @@ class ExpenseTrackerApplicationTests {
 				perform(get("/transaction-history/user?user=<script>alert('XSS!')</script>")
 						.accept(MediaType.TEXT_HTML_VALUE))
 				.andExpect(content().contentType("text/html;charset=UTF-8"))
+				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
+	}
+
+
+	/*
+    This tests whether a different user can access another users transaction history or not -- they should not
+    be able to
+    As of now, this returns a success if attempted to do so, but it should redirect to login page! This can be
+    done using redirectView.setUrl in conjunction with a check on the current principal/ logged in user
+
+    EDIT: THIS TEST NOW PASSES IN SUCCESS
+ */
+	@Test
+	@WithMockUser(username="kanyewest",roles={"USER"})
+	public void testDifferentUserAccessingTransactionHistory() throws Exception {
+
+		// Tests that we can successfully not allow different users to access other users accounts
+		String result = mockMvc
+				.perform(get("/transaction-history/acarary?user=acarary"))
+				.andExpect(status()
+						.isOk())
+				.andReturn().getResponse()
+				.getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
+	}
+
+
+
+	/*
+		This tests whether a different user can modify another users account or not -- they should not
+		be able to
+		As of now, this returns a success if attempted to do so, but it should redirect to login page! This can be
+		done using redirectView.setUrl in conjunction with a check on the current principal/ logged in user
+
+		EDIT: THIS TEST NOW PASSES IN SUCCESS
+	 */
+	@Test
+	@WithMockUser(username="kanyewest",roles={"USER"})
+	public void testDifferentUserAccessingModifyAccount() throws Exception {
+
+		// Tests that we can successfully not allow different users to access other users accounts
+		String result = mockMvc.perform(get("/modify-account/acarary?user=acarary"))
+				.andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
 
 		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
@@ -257,44 +305,6 @@ class ExpenseTrackerApplicationTests {
 				.andReturn().getResponse().getContentAsString();
 
 	}
-
-
-	/*
-		This tests whether a different user can access another users transaction history or not -- they should not
-		be able to
-		As of now, this returns a success if attempted to do so, but it should redirect to login page! This can be
-		done using redirectView.setUrl in conjunction with a check on the current principal/ logged in user
-	 */
-	@Test
-	@WithMockUser(username="kanyewest",roles={"USER"})
-	public void testDifferentUserAccessingTransactionHistory() throws Exception {
-
-		// Tests that we can successfully not allow different users to access other users accounts
-		String result = mockMvc.perform(get("/transaction-history/acarary?user=acarary"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("http://localhost/login"))
-				.andReturn().getResponse().getContentAsString();
-	}
-
-
-
-	/*
-		This tests whether a different user can modify another users account or not -- they should not
-		be able to
-		As of now, this returns a success if attempted to do so, but it should redirect to login page! This can be
-		done using redirectView.setUrl in conjunction with a check on the current principal/ logged in user
-	 */
-	@Test
-	@WithMockUser(username="kanyewest",roles={"USER"})
-	public void testDifferentUserAccessingModifyAccount() throws Exception {
-
-		// Tests that we can successfully not allow different users to access other users accounts
-		String result = mockMvc.perform(get("/modify-account/acarary?user=acarary"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("http://localhost/login"))
-				.andReturn().getResponse().getContentAsString();
-	}
-
 
 
 }

@@ -3,6 +3,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -230,12 +231,18 @@ public class HomeResource {
 
     @GetMapping("/transaction-history/{username}")
     @ResponseBody
-    public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("user") String user){
+    public String getTransactionHistory(@PathVariable("username") String username, @RequestParam("user") String user,
+                                        Principal principal){
 
         // Needed variables for connection and SQL statements
         Connection conn = null;
         Statement stmt = null;
         String transactionData = "";
+        String loggedInUser = principal.getName();
+
+        if(!loggedInUser.equals(username)){
+            return "<h2><center>That username is not valid!</center></h2>";
+        }
 
         try {
             // Open connection and execute query
@@ -351,9 +358,10 @@ public class HomeResource {
     @GetMapping("/modify-account/{username}")
     @ResponseBody
     public String modifyAccount(@PathVariable("username") String username,
-                            @RequestParam(defaultValue = "-1", value = "accountID", required = false) int accountID,
-                            @RequestParam(value= "trans_type", required=false) String trans_type,
-                            @RequestParam(value= "trans_amount", required=false) Long trans_amount){
+                                @RequestParam(defaultValue = "-1", value = "accountID", required = false) int accountID,
+                                @RequestParam(value= "trans_type", required=false) String trans_type,
+                                @RequestParam(value= "trans_amount", required=false) Long trans_amount,
+                                Principal principal){
 
         // Needed variables
         Connection conn = null;
@@ -363,6 +371,12 @@ public class HomeResource {
         long value = 0;
         String expense_acc_name = "";
         String update = "";
+
+        String loggedInUser = principal.getName();
+
+        if(!loggedInUser.equals(username)){
+            return "<h2><center>That username is not valid!</center></h2>";
+        }
 
         try {
 
