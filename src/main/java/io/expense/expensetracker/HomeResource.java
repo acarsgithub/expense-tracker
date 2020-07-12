@@ -1,8 +1,12 @@
 package io.expense.expensetracker;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -97,7 +101,7 @@ public class HomeResource {
      */
     @PostMapping("/add-new-account/{username}")
     @ResponseBody
-    public String addNewAccountToManager(@PathVariable("username") String username, @RequestBody String jsonStr)
+    public String addNewAccountToManager(@PathVariable("username") String username, @RequestBody String jsonStr, Principal principal)
             throws JSONException {
 
         // Parsing JSON Object
@@ -105,6 +109,11 @@ public class HomeResource {
         String category = json.getString("category");
         String amount = json.getString("amount");
         String acc_name = json.getString("acc_name");
+
+        String loggedInUser = principal.getName();
+        if(!loggedInUser.equals(username)){
+            return "<h2><center>You cannot access another individual's account!</center></h2>";
+        }
 
         Connection conn = null;
         Statement stmt = null;
