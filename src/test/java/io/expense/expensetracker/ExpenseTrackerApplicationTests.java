@@ -187,6 +187,8 @@ class ExpenseTrackerApplicationTests {
 		by returning a bad request response if the admin-username isn't a username from the database directly
 
 		This is testing the XSS injection
+
+		EDIT: THIS TEST NOW PASSES FOR SUCCESS
 	*/
 	@Test
 	@WithMockUser(username="admin",roles={"ADMIN"})
@@ -205,7 +207,7 @@ class ExpenseTrackerApplicationTests {
 
 	/*
 		This tests that if an XSS JS code injection occurs for the transaction history controller, that an error
-		404 is returned, but this test FAILS for now because there is nothing to prevent an XSS
+		is returned, but this test FAILS for now because there is nothing to prevent an XSS
 
 		Solution is to ensure and set up proper guidelines against what the values of user can be within the controller
 		source code
@@ -218,9 +220,10 @@ class ExpenseTrackerApplicationTests {
 		String result = mockMvc.
 				perform(get("/transaction-history/user?user=<script>alert('XSS!')</script>")
 						.accept(MediaType.TEXT_HTML_VALUE))
-				.andExpect(status().is4xxClientError())
 				.andExpect(content().contentType("text/html;charset=UTF-8"))
 				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
 	}
 
 
