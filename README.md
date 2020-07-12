@@ -1,5 +1,6 @@
 # Expense Tracker Application
 
+This success branch actually has all of the tests at the bottom passing perfectly! This is the solution ot the master branch.
 
 ### General purpose of application
 This application will allow individuals to track and manage their finances and expenses. 

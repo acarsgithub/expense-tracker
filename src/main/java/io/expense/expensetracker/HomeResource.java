@@ -187,7 +187,7 @@ public class HomeResource {
         }
 
         // XSS Injection occurs here with the username
-        return "<h2><center>Welcome " + username + ". Here's all users' information. </center></h2><br>" + data;
+        return "<h2><center>Welcome, " + username + ". Here's all users' information. </center></h2><br>" + data;
     }
 
 
