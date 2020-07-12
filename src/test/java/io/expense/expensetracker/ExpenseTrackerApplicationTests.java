@@ -167,8 +167,9 @@ class ExpenseTrackerApplicationTests {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(json)
 				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().is4xxClientError())
 				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>You cannot access another individual's account!</center></h2>"));
 
 	}
 
