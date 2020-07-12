@@ -130,10 +130,10 @@ class ExpenseTrackerApplicationTests {
 
 
 	/*
-    This is testing that only the admin can actually access the all-users controller, and should redirect the user
-    if they are not an admin (solution to this involves the security configuration changes to be made for this request)
+		This is testing that only the admin can actually access the all-users controller, and should redirect the user
+		if they are not an admin (solution to this involves the security configuration changes to be made for this request)
 
-    EDIT: THIS TEST PASSES ON SUCCESS BRANCH
+		EDIT: THIS TEST PASSES ON SUCCESS BRANCH
  	*/
 	@Test
 	@WithMockUser(username="acarary",roles={"USER"})
@@ -145,6 +145,39 @@ class ExpenseTrackerApplicationTests {
 				.accept(MediaType.TEXT_HTML_VALUE))
 				.andExpect(status().is4xxClientError())
 				.andReturn().getResponse().getContentAsString();
+	}
+
+	/*
+		This tests that different users cannot access the same user's account and add and account for them
+		It should be an error, but it's successfully adding the account for a different user
+		Solution is to check principal and determine the username of the path variable
+
+		EDIT: THIS TEST NOW PASSES FOR SUCCESS
+ 	*/
+	@Test
+	@WithMockUser(username="kanywest",roles={"USER"})
+	public void testAccessingDifferentUser() throws Exception {
+
+		// Creating object to store body message key-value pairs
+		Object randomObj = new Object() {
+			public final String category = "Investment";
+			public final String amount = "20";
+			public final String acc_name = "Hacked";
+		};
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		String json = objectMapper.writeValueAsString(randomObj);
+		System.out.println(json);
+
+		// Testing post request to create a new user
+		String result = mockMvc.perform(MockMvcRequestBuilders.post("/add-new-account/acarary")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(json)
+				.accept(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>You cannot access another individual's account!</center></h2>"));
+
 	}
 
 
@@ -161,10 +194,12 @@ class ExpenseTrackerApplicationTests {
 
 		// Tests XSS JS Injection
 		String result = mockMvc.
-				perform(get("/all-users?admin-username=<script>alert('XSS!')</script>").accept(MediaType.TEXT_HTML_VALUE))
-				.andExpect(status().is4xxClientError())
+				perform(get("/all-users?admin-username=<script>alert('XSS!')</script>")
+						.accept(MediaType.TEXT_HTML_VALUE))
 				.andExpect(content().contentType("text/html;charset=UTF-8"))
 				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
 	}
 
 
@@ -187,6 +222,7 @@ class ExpenseTrackerApplicationTests {
 				.andExpect(content().contentType("text/html;charset=UTF-8"))
 				.andReturn().getResponse().getContentAsString();
 	}
+
 
 	/*
 		This test checks for the possibility of a SQL injection to occur for any of the parameters given in json object
@@ -218,40 +254,6 @@ class ExpenseTrackerApplicationTests {
 				.andReturn().getResponse().getContentAsString();
 
 	}
-
-
-	/*
-		This tests that different users cannot access the same user's account and add and account for them
-		It should be an error, but it's successfully adding the account for a different user
-		Solution is to check principal and determine the username of the path variable
-	 */
-	@Test
-	@WithMockUser(username="kanywest",roles={"USER"})
-	public void testAccessingDifferentUser() throws Exception {
-
-		// Creating object to store body message key-value pairs
-		Object randomObj = new Object() {
-			public final String category = "Investment";
-			public final String amount = "20";
-			public final String acc_name = "Hacked";
-		};
-
-		ObjectMapper objectMapper = new ObjectMapper();
-		String json = objectMapper.writeValueAsString(randomObj);
-		System.out.println(json);
-
-		// Testing post request to create a new user
-		String result = mockMvc.perform(MockMvcRequestBuilders.post("/add-new-account/acarary")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(json)
-				.accept(MediaType.APPLICATION_JSON))
-				.andReturn().getResponse().getContentAsString();
-
-		Assert.isTrue(result.equals("<h2><center>You cannot access another individual's account!</center></h2>"));
-
-	}
-
-
 
 
 	/*

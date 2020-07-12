@@ -174,6 +174,22 @@ public class HomeResource {
             conn = DriverManager
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+
+            String checkUsername = "SELECT username FROM manager WHERE roles = 'ROLE_USER'";
+            ResultSet userCheck = stmt.executeQuery(checkUsername);
+            boolean properUser = false;
+            while (userCheck.next()){
+                if(userCheck.getString("username").equals(username)){
+                    properUser = true;
+                }
+            }
+
+            if(!properUser){
+                return "<h2><center>That username is not valid!</center></h2>";
+            }
+
+
             String properId = "SELECT username FROM  manager";
 
             // Obtain total net worth of all users in the database
