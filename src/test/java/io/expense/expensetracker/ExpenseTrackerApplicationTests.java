@@ -114,36 +114,6 @@ class ExpenseTrackerApplicationTests {
 		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
 	}
 
-	/*
-		This test checks for the possibility of a SQL injection to occur for any of the parameters given in json object
-		key value pairs --- it should return a 404 error if foul play is detected, but the test fails to do so as of now
-
-		Solution is to insure no SQL code is executable and/or included within the add-new-account json object values
-	 */
-	@Test
-	@WithMockUser(username="acarary",roles={"USER"})
-	public void testSQLInjection() throws Exception {
-
-		// Creating object to store body message key-value pairs
-		Object randomObj = new Object() {
-			public final String category = "Investment";
-			public final String amount = "20";
-			public final String acc_name = "M2Finance'); INSERT INTO expenses(`username`, `expense_category`, `expense_value`, `expense_acc_name`) VALUES ('acarary', 'Loan', '-10000', 'SQLInjection";
-		};
-
-		ObjectMapper objectMapper = new ObjectMapper();
-		String json = objectMapper.writeValueAsString(randomObj);
-		System.out.println(json);
-
-		// Testing post request to create a new user
-		String result = mockMvc.perform(MockMvcRequestBuilders.post("/add-new-account/acarary")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(json)
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().is4xxClientError())
-				.andReturn().getResponse().getContentAsString();
-
-	}
 
 	/*
 		This tests that different users cannot access the same user's account and add and account for them
@@ -289,4 +259,35 @@ class ExpenseTrackerApplicationTests {
 	}
 
 
+	/*
+    This test checks for the possibility of a SQL injection to occur for any of the parameters given in json object
+    key value pairs --- it should return a 404 error if foul play is detected, but the test fails to do so as of now
+
+    Solution is to insure no SQL code is executable and/or included within the add-new-account json object values
+ */
+	@Test
+	@WithMockUser(username="acarary",roles={"USER"})
+	public void testSQLInjection() throws Exception {
+
+		// Creating object to store body message key-value pairs
+		Object randomObj = new Object() {
+			public final String category = "Investment";
+			public final String amount = "20";
+			public final String acc_name = "M2Finance'); INSERT INTO expenses(`username`, `expense_category`, `expense_value`, `expense_acc_name`) VALUES ('acarary', 'Loan', '-10000', 'SQLInjection";
+		};
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		String json = objectMapper.writeValueAsString(randomObj);
+		System.out.println(json);
+
+		// Testing post request to create a new user
+		String result = mockMvc.perform(MockMvcRequestBuilders.post("/add-new-account/acarary")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(json)
+				.accept(MediaType.APPLICATION_JSON))
+				.andExpect(status().is4xxClientError())
+				.andReturn().getResponse().getContentAsString();
+
+	}
+	
 }
