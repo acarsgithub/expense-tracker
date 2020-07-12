@@ -202,10 +202,14 @@ class ExpenseTrackerApplicationTests {
 	public void testDifferentUserAccessingTransactionHistory() throws Exception {
 
 		// Tests that we can successfully not allow different users to access other users accounts
-		String result = mockMvc.perform(get("/transaction-history/acarary?user=acarary"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("http://localhost/login"))
-				.andReturn().getResponse().getContentAsString();
+		String result = mockMvc
+				.perform(get("/transaction-history/acarary?user=acarary"))
+				.andExpect(status()
+						.isOk())
+				.andReturn().getResponse()
+				.getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
 	}
 
 
