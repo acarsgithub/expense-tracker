@@ -226,9 +226,10 @@ class ExpenseTrackerApplicationTests {
 
 		// Tests that we can successfully not allow different users to access other users accounts
 		String result = mockMvc.perform(get("/modify-account/acarary?user=acarary"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("http://localhost/login"))
+				.andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
 	}
 
 	/*
