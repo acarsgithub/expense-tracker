@@ -239,7 +239,6 @@ class ExpenseTrackerApplicationTests {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		String json = objectMapper.writeValueAsString(randomObj);
-		System.out.println(json);
 
 		// Testing post request to create a new user
 		String result = mockMvc.perform(MockMvcRequestBuilders.post("/create-new-user")
@@ -269,7 +268,6 @@ class ExpenseTrackerApplicationTests {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		String json = objectMapper.writeValueAsString(randomObj);
-		System.out.println(json);
 
 		// Testing post request to create a user that already exists
 		String result = mockMvc.perform(MockMvcRequestBuilders.post("/create-new-user")

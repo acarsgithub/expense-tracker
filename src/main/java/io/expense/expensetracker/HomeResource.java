@@ -224,6 +224,7 @@ public class HomeResource {
             if(stmt.execute(transactionInfo)) {
                 // Obtaining user data from transaction database
                 ResultSet transactionSQL = stmt.executeQuery(transactionInfo);
+                System.out.println(transactionSQL);
 
                 // Accessing helper method to create table
                 transactionData = viewTable(transactionSQL, "<h2><center>Full Transaction History</center></h2>");
