@@ -53,10 +53,12 @@ class ExpenseTrackerApplicationTests {
 
 		// Tests XSS JS Injection
 		String result = mockMvc.
-				perform(get("/all-users?admin-username=<script>alert('XSS!')</script>").accept(MediaType.TEXT_HTML_VALUE))
-				.andExpect(status().is4xxClientError())
+				perform(get("/all-users?admin-username=<script>alert('XSS!')</script>")
+						.accept(MediaType.TEXT_HTML_VALUE))
 				.andExpect(content().contentType("text/html;charset=UTF-8"))
 				.andReturn().getResponse().getContentAsString();
+
+		Assert.isTrue(result.equals("<h2><center>That username is not valid!</center></h2>"));
 	}
 
 
