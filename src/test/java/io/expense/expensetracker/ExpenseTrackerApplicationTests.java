@@ -87,8 +87,7 @@ class ExpenseTrackerApplicationTests {
 		// Must redirect to login page
 		String result = mockMvc.perform(get("/all-users?admin-username=acarary")
 				.accept(MediaType.TEXT_HTML_VALUE))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("http://localhost/login"))
+				.andExpect(status().is4xxClientError())
 				.andReturn().getResponse().getContentAsString();
 	}
 
