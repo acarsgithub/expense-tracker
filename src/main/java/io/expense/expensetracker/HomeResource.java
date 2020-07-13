@@ -105,6 +105,10 @@ public class HomeResource {
     public String addNewAccountToManager(@PathVariable("username") String username, @RequestBody String jsonStr, Principal principal)
             throws JSONException {
 
+        // Prepared statements needed for parameterized queries
+        PreparedStatement select = null;
+        PreparedStatement update = null;
+
         // Parsing JSON Object
         JSONObject json = new JSONObject(jsonStr);
         String category = json.getString("category");
@@ -126,8 +130,14 @@ public class HomeResource {
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // Determines if the user already has the account they are attempting to add
-            String checkCurrAccNames = "SELECT expense_acc_name FROM expenses WHERE username='" + username + "'";
-            ResultSet setOfCurrAccNames = stmt.executeQuery(checkCurrAccNames);
+            String checkCurrAccNames = "SELECT expense_acc_name FROM expenses WHERE username= ?";
+
+            // Fighting against SQL Injections
+            select = conn.prepareStatement(checkCurrAccNames);
+            select.setString(1, username);
+            ResultSet setOfCurrAccNames = select.executeQuery();
+
+            // Checking if account is not valid
             while(setOfCurrAccNames.next()){
                 if(setOfCurrAccNames.getString("expense_acc_name").equals(acc_name)){
                     return("<h2><center>The account you are attempting to create already exists!</center></h2>");
@@ -135,9 +145,15 @@ public class HomeResource {
             }
 
             // If it is a new account, add to database
+            // Using parameterized statements to help fight against SQL Injection
             String properId = "INSERT INTO expenses(`username`, `expense_category`, `expense_value`, `expense_acc_name`) " +
-                        " VALUES ('" + username + "', '" + category + "', '" + amount + "', '" + acc_name + "')";
-            stmt.executeUpdate(properId);
+                        " VALUES (?, ?, ?, ?)";
+            update = conn.prepareStatement(properId);
+            update.setString(1, username);
+            update.setString(2, category);
+            update.setString(3, amount);
+            update.setString(4, acc_name);
+            update.executeUpdate();
 
         } catch (Exception se) { se.printStackTrace(); }
         // Close Resources
