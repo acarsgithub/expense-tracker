@@ -16,6 +16,11 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.Assert;
 import java.security.Principal;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -285,9 +290,24 @@ class ExpenseTrackerApplicationTests {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(json)
 				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().is4xxClientError())
+				.andExpect(status().isOk())
 				.andReturn().getResponse().getContentAsString();
 
+		Connection conn = null;
+		Statement stmt = null;
+
+		// Open connection and execute query
+		conn = DriverManager
+				.getConnection("jdbc:mysql://localhost:3306/expensetracker?allowMultiQueries=true", "root", "");
+		stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+		String checkExpense = "SELECT expense_acc_name FROM expenses WHERE expense_id= '1'";
+		ResultSet checker = stmt.executeQuery(checkExpense);
+
+		// Asserting the SQL code was not interpreted as SQL and was instead used as the acc name
+		while (checker.next()){
+			Assert.isTrue(checker.getString("expense_acc_name").equals("M2Finance'); INSERT INTO expenses(`username`, `expense_category`, `expense_value`, `expense_acc_name`) VALUES ('acarary', 'Loan', '-10000', 'SQLInjection"));
+		}
 	}
 	
 }
