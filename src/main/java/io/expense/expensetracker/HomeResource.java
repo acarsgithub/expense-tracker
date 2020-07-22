@@ -266,7 +266,6 @@ public class HomeResource {
                     .getConnection("jdbc:mysql://localhost:3306/expensetracker", "root", pass);
             stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
-
             String checkUsername = "SELECT username FROM manager WHERE roles = 'ROLE_USER'";
             ResultSet userCheck = stmt.executeQuery(checkUsername);
             boolean properUser = false;
