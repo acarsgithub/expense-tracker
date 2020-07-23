@@ -34,7 +34,6 @@ see all users who have created an account and their respective net-worth.
 * Parameters: None
 * Accept Get Request
 * Roles permitted: permit all
-* Vulnerabilities: none
 
 
 ### /login
@@ -42,7 +41,6 @@ see all users who have created an account and their respective net-worth.
 * Parameters: None
 * Accept Get Request
 * Roles permitted: permit all
-* Vulnerabilities: none
 
 
 ### /create-new-user
@@ -53,7 +51,6 @@ see all users who have created an account and their respective net-worth.
         * *password* - the password of the account created
 * Post Mapping
 * Roles permitted: permit all
-* Vulnerabilities: none
    
 
 ### /add-new-account/{username}
@@ -70,8 +67,7 @@ see all users who have created an account and their respective net-worth.
         * *amount* - this is a required request parameter indicating the initial amount tha account will start off with (may be negative or positive values)
         * *acc_name* - this is a required request parameter indicating the name of the account that you want to open (RobinHood, Wells Fargo, etc.)
 * Post Mapping
-* Roles permitted: user, admin
-* Vulnerabilities: none      
+* Roles permitted: user, admin    
 
 
 ### /all-users
@@ -80,7 +76,6 @@ see all users who have created an account and their respective net-worth.
     * *admin-username* - the username of the admin wanting to access the account
 * Accept Get Request
 * Roles Permitted: admin
-* Vulnerabilities: none
 
  
 ### /transaction-history/{username} 
@@ -90,7 +85,6 @@ see all users who have created an account and their respective net-worth.
     * *user* - this is a required request parameter indicating the name of the user
 * Accept Get Request
 * Roles Permitted: admin, user
-* Vulnerabilities: none
     
     
 ### /total-net-worth/{username} 
@@ -99,7 +93,6 @@ see all users who have created an account and their respective net-worth.
     * *username* - this is a path variable indicating the username of the manager you are attempting to access the net worth of
 * Accept Get Request
 * Roles Permitted: admin, user
-* Vulnerabilities: none
 
 
 ### /modify-account/{username}
@@ -113,72 +106,6 @@ see all users who have created an account and their respective net-worth.
     * *trans_amount* - this is an optional request parameter indicating the amount of amount you would like to withdraw or deposit into the account
 * Accept Get Request
 * Roles Permitted: admin, user
-* Vulnerabilities: none   
- 
- 
- 
-## Expense Tracker vulnerability design
-
-### Brute Force Attack on login information
-* Description: On /login page, an attacker can try as many username-password pairs as it wants
-* Demo: see test fucnction
-* Test function: testBFA()
-* Location: N/A 
-* Solution: Implement an authenticationFailureListener class that keep track of login failure
-information using spring security framework. Sample solution see AuthenticationFailureClass and
-MyUserDetails class. For more detailed solution see https://www.baeldung
-.com/spring-security-block-brute-force-authentication-attempts
-
-### Improper api design (exposing admin authorities to users)
-* Description: On /index page, a user is allowed to see the link for /admin page whhich is a page only authorized to ADMIN
-* Demo: 
-* Test function: none
-* Location: HomeResource.java, Line: 19-21
-* Solution: After login, direct users with different roles to corresponding index pages that only list the corresponding authorities of that role.
-
-### Invalid inputs that cause sql server error
-* Description: On /get_product_info_by_id page, an attacker can enter anything rather than a product id which is an integer. This will cause server error.
-* Demo: see test fucnction
-* Test function: testInvalidSqlInput()
-* Location: HomeResource.java, Line: 48-50
-* Solution: Implement code that sanitize user input, see the source code comment for sample solution.
-
-### Unauthorized access of system by anyone
-* Description: /admin page can be accessed by an attacker without being authenticated
-* Demo: see test fucnction
-* Test function: testUnauthenticatedAccess()
-* Location: SecurityConfiguration.java, Line: 36 
-* Solution: Refine authority assigned to each role, see the source code comment for sample solution.
-
-### CSRF attack
-* Description: On /get_product_info_by_id page, an attacker cause user to carry out a query on product information unintentionally.
-* Demo: see test fucnction
-* Test function: testCSRF()
-* Location: SecurityConfiguration.java, Line: 49
-* Solution: Enable csrf protection provided by spring security, see the source code comment for sample solution.
-
-### Expose of sql source code
-* Description: In the HomeSource.java file, the sql quey used by /get_product_info_by_id is exposed.
-* Demo:
-* Test function: none
-* Location: HomeResource.java, Line: 69-71
-* Solution: Implement mysql procedure in the database management system and call procedure in source code instead, see the source code comment for sample solution.
-
-### Sql injection attack
-* Description: On /get_product_info_by_id page, an attacker can enter additional sql query element along with a product id. This will expose data in the database.
-* Demo: see test fucnction
-* Test function: testSQLInjection()
-* Location: HomeResource.java, Line: 81
-* Solution: Implement code that sanitize user input, see the source code comment for sample solution.
-
-### XSS attack
-* Description: On /add_comment page, an attacker can enter malicious html code that cause server
-error
-* Demo: see test function
-* Test function: testSQLInjection()
-* Location: HomeResource.java, Line: 81
-* Solution: Implement code that sanitize user input, see the source code in HtmlUtils.java.
-
 
 
 
@@ -186,7 +113,7 @@ error
 
 ### testHome, testForcesUserLogin, testAdminCredentialsOnAdminController, testCreateNewUser
 * Should pass if the original functionalities of the application remain.
-* Grading rubrics: 10 pts each should be deducted if each of them fails.
+* Grading rubrics: 5 pts each should be deducted if each of them fails.
 
 
 ### testXSS
