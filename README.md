@@ -6,52 +6,6 @@ There are 12 tests, 4 of the tests pass, but 8 of the tests fail. The 8 tests th
 not allowing SQL injections, not allowing XSS JS injections, not users to access accounts of different users, not allowing specific
 users to admin only links/information, etc. Your job is to fix these errors and make them all pass. 
 
-##### Passing Tests
-* *testHome* - works perfectly and as it should!
-
-* *testForcesUserLogin* - this test passes perfectly and ensures that a random individual with no account cannot access an admin link
-
-* *testAdminCredentialsOnAdminController* - this test passes and ensures an admin can get into a page designed for themselves
-
-* *testCreateNewUser* - this test passes and ensures a new user can properly be made when needed
-
-##### Failing Tests
-* *testXSS* - this test FAILS because it allows for an XSS injection to occur rather than throw a 400 error, this needs 
-to be accounted for within the 'all-users' controller --- the solution can be approached in various ways, but it involves
-checking the accounts of the parameter and insuring that nothing gets executed unless it is a valid username within the database
-
-* *testAdminNeededForController* - this test attempts to ensure that a user privilege cannot access admin information, but it FAILS and
-the solution involves changing the security configuration
-
-* *testXSS2* - this tests against an XSS Injection in the transaction history controller and it FAILS to not allow the XSS Injection, and the 
-solution revolves around verifying and checking the contents of the parameter 
-
-* *testSQLInjection* - this tests against a SQL Injection in the add-new-account controller and FAILS to prevent a SQL Injection
-from occurring, and the solution revolves around verifying and checking the contents of the json object values (ALL OBJECT VALUES SHOULD BE TESTED AGAINST)
-
-* *testAccessingDifferentUser* - this tests that a different user from the one currently logged in cannot add-new-account for
-another user and it FAILS to prevent this, the solution is to check the principal and compare to the username of the path variable 
-
-* *testDifferentUserAccessingTransactionHistory* - this tests against a different user attempting to access the transaction 
-history of a different user's account and FAILS to prevent this from happening, and the solution revolves around using 
-redirectView.setUrl in conjunction with a check on the current principal/ logged in user
-
-* *testDifferentUserAccessingModifyAccount* - this tests against a different user attempting to access the modify account page
-of a different user's account and FAILS to prevent this from happening, and the solution revolves around using 
-redirectView.setUrl in conjunction with a check on the current principal/ logged in user
-
-* *testCreateNewDuplicateUser* - this tests against a duplicate user being created and FAILS to prevent duplicates with the same username,
-and the solution revolves around verifying the username and checkign against the database and returning that the account already
-exists if the username matches one in the database
-
-
-
-
-
-
-
-
-
 
 # expense-tracker application
 ## Instruction
@@ -220,53 +174,70 @@ MyUserDetails class. For more detailed solution see https://www.baeldung
 ### XSS attack
 * Description: On /add_comment page, an attacker can enter malicious html code that cause server
 error
-* Demo: see test fucnction
+* Demo: see test function
 * Test function: testSQLInjection()
 * Location: HomeResource.java, Line: 81
 * Solution: Implement code that sanitize user input, see the source code in HtmlUtils.java.
 
 
+
+
 ## Test description and grading rubrics
 
-### testHome(), testPageAdmin(), testGetProductInfo(), testAddComment()
+### testHome, testForcesUserLogin, testAdminCredentialsOnAdminController, testCreateNewUser
 * Should pass if the original functionalities of the application remain.
 * Grading rubrics: 10 pts each should be deducted if each of them fails.
 
-### testUser(), testWrongUser()
-* Should pass if the login authentication remains.
-* Grading rubrics: 10 pts should be deducted if any of them fails.
 
-### testUnauthenticatedAccess()
-* Should pass if /admin is secured against unauthenticaed users.
-* Grading rubrics: completely ignoring the vulnerbility -10; code partialy implemented but fails the test -5; correct -0;
+### testXSS
+* Should pass if /all-users api is secured against XSS injection attack
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
+* this test FAILS because it allows for an XSS injection to occur, this needs to be accounted for within the 'all-users' controller --- the solution can be approached in various ways, but it involves
+  checking the accounts of the parameter and insuring that nothing gets executed unless it is a valid username within the database
 
-### testUnauthorizedAccess()
-* Should pass if /admin is secured against unauthorized users, such as the role 'USER'.
-* Grading rubrics: completely ignoring the vulnerbility -10; code partialy implemented but fails the test -5; correct -0;
 
-### testSQLInjection()
-* Should pass if /get_product_info_by_id api is secured against sql injection attack such as
-'id=1 and username = user2'
-* Grading rubrics: completely ignoring the vulnerbility -10; code partialy implemented but fails the test -5; correct -0;
+### testAdminNeededForController
+* Should pass if /all-users is secured against unauthenticaed users.
+* this test attempts to ensure that a user privilege cannot access admin information, but it FAILS and the solution involves changing the security configuration
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
 
-### testInvalidSqlInput()
-* Should pass if /get_product_info_by_id api is secured against invalid inputs such as 'id=asfsda'.
-* Grading rubrics: completely ignoring the vulnerbility -10; code partialy implemented but fails the test -5; correct -0;
 
-### testXSS()
-* Should pass if /add_comment api is secured against XSS attack.
-* Grading rubrics: completely ignoring the vulnerbility -10; code partialy implemented but fails the test -5; correct -0;
+### testXSS2
+* Should pass if /transaction-history api is secured against XSS injection attack
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
+* this tests against an XSS Injection in the transaction history controller, and it FAILS to not allow the XSS Injection, and the 
+    solution revolves around verifying and checking the contents of the parameter 
+    
+    
+### testSQLInjection
+* Should pass if /add-new-account api is secured against sql injection attack
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
+* this tests against a SQL Injection in the add-new-account controller and FAILS to prevent a SQL Injection from 
+  occurring, and the solution revolves around verifying and checking the contents of the json object values (ALL OBJECT VALUES SHOULD BE TESTED AGAINST)
 
-### testCSRF(), testCSRF_1()
-* Should pass if CSRF protection is enabled in spring security so that only request sent with csrf
-token will be processed.
-* Grading rubrics: completely ignoring the vulnerbility -10; code partialy implemented but fails the test -5; correct -0;
 
-### testBFA()
-* Should pass if the application is secured against brute force attack in login. Student should
-implement solution to BFA such that if a user tries a wrong password for less than 10 times the api
-will redirect the user to /login?error each time login fails. However, if more than 10 times, the
-user account will be locked. The user can not tries any more password and can not even login with
-valid credentials.
-* Grading rubrics: Bonus, completely ignoring the vulnerbility -0; code partialy implemented but
-fails the test +5; correct +10;
+### testAccessingDifferentUser 
+* Should pass if /add-new-account api is secured against other users who shouldn't have access to another user's info
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
+* this tests that a different user from the one currently logged in cannot add-new-account for
+    another user, and it FAILS to prevent this, the solution is to check the principal and compare to the username of the path variable
+    
+     
+### testDifferentUserAccessingTransactionHistory
+* Should pass if /transaction-history api is secured against other users who shouldn't have access to another user's info
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
+* this tests against a different user attempting to access the transaction history of a different user's account 
+
+
+
+### testDifferentUserAccessingModifyAccount
+* Should pass if /modify-account api is secured against other users who shouldn't have access to another user's info
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
+* this tests against a different user attempting to access the modify account page of a different user's account
+
+
+### testCreateNewDuplicateUser 
+* Should pass if user is prohibited from making same account (same username)
+* Grading rubrics: completely ignoring the vulnerability -10; code partially implemented but fails the test -5; correct -0;
+* this tests against a duplicate user creations and FAILS to prevent duplicates with the same username, and the solution revolves around verifying the username and checking against the database and returning that the account already
+exists if the username matches one in the database
