@@ -8,6 +8,14 @@ plugins {
 repositories { mavenCentral() }
 
 
+if (hasProperty('buildScan')) {
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+    }
+}
+
+
 dependencies {
     implementation 'com.vaadin.external.google:android-json:0.0.20131108.vaadin1'
     runtimeOnly 'mysql:mysql-connector-java'
