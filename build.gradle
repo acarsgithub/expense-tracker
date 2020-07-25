@@ -47,3 +47,12 @@ sourceCompatibility = '14'
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
+
+sourceSets {
+    test {
+        java {
+            srcDir 'src'
+            srcDir 'test'
+        }
+    }
+}
