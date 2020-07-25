@@ -1,11 +1,21 @@
 
 # StyleChecker's Travis configuration
+
 language: java
-sudo: false
+install: skip
+
+os: linux
+dist: trusty
+jdk: oraclejdk14
 
 services:
   - mysql
+
 before_script:
   - mysql -u root --password="" < src/test/travis.sql
 
+before_install:
+  - chmod +x gradlew
 
+script:
+  - ./gradlew build --scan -s
