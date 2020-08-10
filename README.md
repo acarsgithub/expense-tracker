@@ -11,9 +11,9 @@ users to admin only links/information, etc. Your job is to fix these errors and 
 ## Instruction
 * Clone/download this project to your local machine
 * Open project with Intellij
-* Setup and connect to your Mamp/Wamp server
-* Run the sql file src/main/test/java/travis.sql with Mysql Workbench 
-* Configure your connection to the database server in src/main/resources/application.properties.
+* Download, setup, and connect to your Mamp/Wamp server with your MySQL workbench (look at later information)
+* Run the sql file src/main/test/java/travis.sql with Mysql Workbench, you can just copy and aste the contents into your own SQL file and run the local copy from workbench...
+* Configure your connection to the database server in src/main/resources/application.properties by applying the appropriate information relating to your local server such as username, password, and datasource url.
 * To run the existing test, go to 
 src/test/java/io.expense.expensetracker/ExpenseTrackerApplicationTests.java and run the test file
 * To run the api: run src/main/java/io.expense.expensetracker/ExpenseTrackerApplication.java
