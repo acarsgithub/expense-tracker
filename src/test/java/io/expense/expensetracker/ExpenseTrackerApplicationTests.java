@@ -243,6 +243,7 @@ class ExpenseTrackerApplicationTests {
 	 */
 	@Test
 	public void testCreateNewDuplicateUser() throws Exception {
+
 		// Creating object to store body message key-value pairs
 		Object randomObj = new Object() {
 			public final String username = "acarary";
